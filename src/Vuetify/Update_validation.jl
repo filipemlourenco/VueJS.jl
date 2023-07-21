@@ -621,3 +621,86 @@ VueJS.UPDATE_VALIDATION["v-expansion-panel"]=(
         end
     end
 )
+
+VueJS.UPDATE_VALIDATION["v-chip-group"]=(
+    doc = """The <code> v-chip-group </code> supercharges the </code> v-chip </code> component by providing groupable functionality. It is used for creating groups of selections using chips.
+<code>
+# --- chips list with a tooltip (value + description)
+@el(ex1, "v-chip-group", cols = 4, 
+    item  = @el(t, "v-chip", color = "blue", small = true, label = true, click = "this.console.log('hello world')"),
+    tooltip = true,
+    items = [
+        Dict("value" => "hello1", "description" => "An example description 1"), 
+        Dict("value" => "hello3", "description" => "An example description 2"), 
+        Dict("value" => "hello2", "description" => "An example description 3")
+    ] 
+)
+
+# --- chips list with a filter icon
+@el(ex2,"v-chip-group", cols = 4,
+    item = @el(t, "v-chip", filter-icon = "mdi-filter-variant", small = true, label = true, mandatory = true, 
+        color = "#e4effa", class = "primary--text text--accent-4", 
+        click = "this.console.log('filter', chip_list_filters.value[index].value)"), 
+    items = [ Dict("value" => "filter1"), Dict("value" => "filter2") ])
+
+# --- chip list with value + data
+@el(ex3, "v-chip-group", active-class="primary--text text--accent-4", cols = 3, style = Dict("margin-right" => -10),
+    model = 0,
+    item = @el(t, "v-chip", filter-icon = "mdi-filter-variant", small = true, label = true, filter=true, class="white--text", 
+    click = "this.console.log('filter', item)"),
+    items = [
+        Dict("value" => "All"),
+        Dict("value" => "Draft",  "data" => Dict("id" => "col_status", "value" => "draft")),
+        Dict("value" => "Open",   "data" => Dict("id" => "col_status", "value" => "open")),
+        Dict("value" => "Closed", "data" => Dict("id" => "col_status", "value" => "closed")),
+    ]
+) 
+</code>
+    """,
+    value_attr="items",
+    fn = (x) -> begin
+        @assert haskey(x.attrs,"items")           "Vuetify List element with no arg items!"
+        @assert typeof(x.attrs["items"]) <: Array "Vuetify List element with non Array arg items!"
+
+        if haskey(x.attrs, "item")
+            x.child = x.attrs["item"]
+            delete!(x.attrs,"item")
+        end
+
+        has_ttp = get(x.no_dom_attrs, "tooltip", false)
+        delete!(x.no_dom_attrs, "tooltip")
+        
+        x.render_func = (y;opts=PAGE_OPTIONS)->begin
+            path = opts.path=="" ? "" : opts.path*"."
+
+            dynlist = get(x.attrs, "dynlist", "$path$(x.id).value")
+            delete!(x.attrs, "dynlist")
+        
+            dom_list = VueJS.dom(y, prevent_render_func=true,opts=opts)
+            dom_list.attrs["v-model"] = "$path$(x.id).model"
+            delete!(dom_list.attrs, "change")
+            
+            opts_item = deepcopy(opts)
+            opts_item.rows=false
+            
+            dom_item = VueJS.dom(y.child,opts=opts_item,is_child=true)
+
+            if has_ttp
+                tooltip  = @el(ttp, "v-tooltip", content = "{{ item.description }}", bottom = true)
+                chip     = VueJS.activator(tooltip, html("v-chip", "{{ item.value }}", dom_item.attrs), "v-tooltip")
+                dom_item = html("template", chip, Dict("v-for"=>"(item, index) in $dynlist"))
+            else
+                if haskey(dom_item.attrs, "filter-icon") && haskey(dom_item.attrs, "mandatory")
+                    dom_item = html("v-chip", [html("v-icon", dom_item.attrs["filter-icon"], Dict("left" => true)), "{{ item.value }}"], dom_item.attrs) 
+                else
+                    dom_item = html("v-chip", "{{ item.value }}", dom_item.attrs)
+                end
+                dom_item.attrs["v-for"]="(item, index) in $dynlist"
+                dom_item.attrs[":key"]="index"
+            end
+            
+            dom_list.value = dom_item
+            return dom_list
+        end
+    end
+)
