@@ -1,5 +1,5 @@
 [
-    {"url":"https://cdnjs.cloudflare.com/ajax/libs/vue/3.5.34/vue.global.prod.min.js","version":"3.5.34","type":"js", "name":"vue.js"},
+    {"url":"https://cdn.jsdelivr.net/npm/vue@3.5.34/dist/vue.global.prod.min.js","version":"3.5.34","type":"js", "name":"vue.js"},
 
     {"url":"https://cdn.jsdelivr.net/npm/vuetify@4.0.7/dist/vuetify.min.js","version":"4.0.7","type":"js", "name":"vuetify.min.js"},
     {"url":"https://cdn.jsdelivr.net/npm/vuetify@4.0.7/dist/vuetify.min.css","version":"4.0.7","type":"css", "name":"vuetify.min.css", "css":"[v-cloak] {display: none}"},
